@@ -37,6 +37,10 @@ h1{
     height: 80px;
 }
 
+.exchange-rates{
+    display: none;
+}
+
 .currency-section{
   /* display: flex; */
   
@@ -133,9 +137,102 @@ select{
 }
 
 @media only screen and (max-width: 600px) {
-    body{
-        background-color: #2684FF;
+    h1{
+        font-size: 15px;
+        margin-top: 20px;
     }
+
+.sticky-pannel{
+   display: flex;
+   flex-direction: column;
+   padding: 10px;
+}
+
+.exchange-rate{
+    display: none;
+}
+
+.exchange-rates{
+    display: flex;
+    height: auto;
+    margin-top: 10px;
+}
+
+.amount label{
+    font-size: 14px;
+}
+.amount-section{
+    padding: 0px;
+}
+.amount{
+    padding: 0px;
+}
+.amount input{
+        height: 45px;
+        width: auto;
+} 
+
+.currency-section{
+    margin-top: 10px;
+}
+
+.currency-section label{
+    font-size: 14px;
+}
+
+.to-from{
+    display: flex;
+    width: auto;
+}
+
+.from, .to{
+width: 130px;
+}
+
+
+.convert-btn{
+    height: 28px;
+    margin-top: 10px;
+  }
+
+  .details-sec{
+    margin-top: 10px;   
+    display: block;
+    width: 100%;
+  }
+
+  .result{
+    height: 63px;
+    width: auto;
+  }
+
+  .details-btn{
+     height: 28px;
+    width: 100%;
+    margin-top: 10px;
+  }
+
+  .swap{
+    padding: 10px;
+    align-self:flex-end;
+    height: 45px;
+  }
+
+  .swap img{
+    height: 14px;
+    width: auto;
+  }
+
+  .card-grids{
+    margin-top: 20px;
+   grid-template-columns: 1fr;
+   gap: 10px;
+}
+
+.grid-item{
+   height: 84px;
+}
+
 }
 
 

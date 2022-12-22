@@ -7,6 +7,9 @@
     border: 1px solid white;
     padding: 19px 30px;
     background-color: black;
+    /* position: fixed;
+    width: 90.5vw; */
+    /* top: 0; */
 }
 
 .links{
@@ -32,3 +35,20 @@
     font-family: inter;
 }
 
+
+@media only screen and (max-width: 600px) {
+    .links li{
+        list-style: none;
+        width: 139px;
+    font-size: 10px;
+    width: 62px;
+    text-align: center;
+    margin-left: 20px;
+   }
+
+   .sticky-menu{
+    padding: 19px 20px;
+    height: 50px;
+   }
+
+}

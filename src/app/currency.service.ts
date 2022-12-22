@@ -9,7 +9,7 @@ export class CurrencyService {
   constructor(private http:HttpClient) { }
 
   getCurrency(){
-    this.http.get()
+    // this.http.get()
   }
 
 }
