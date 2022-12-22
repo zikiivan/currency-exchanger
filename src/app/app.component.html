@@ -1,16 +1,22 @@
 <!-- Sticky Menu -->
-<nav>
+<nav class="sticky-menu">
   <!-- logo -->
   <div class="logo">
-    logo
+    <a routerLink="/home">
+    <img src="assets/logo.svg"/>
+    </a>
   </div>
-  <ul class="links">
-    <li>
-      link
+  <ul class="links ">
+    <a [routerLink]="['details','EUR-USD']">
+    <li  class="">
+      EUR-USD Details
     </li>
-      <li>
-        link
+  </a>
+  <a [routerLink]="['details','EUR-GBR']">
+      <li class="">
+        EUR-GBR Details
       </li>
+      </a>
   </ul>
 </nav>
 <router-outlet></router-outlet>

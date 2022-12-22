@@ -1,0 +1,34 @@
+.sticky-menu{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 90px;
+    border-radius: 6px;
+    border: 1px solid white;
+    padding: 19px 30px;
+    background-color: black;
+}
+
+.links{
+    display:flex;
+    margin: 0px;
+    padding: 0px;
+}
+
+.links a{
+    text-decoration: none;
+}
+
+.links li{
+    list-style: none;
+    width: 139px;
+    height: 40px;
+    margin-left: 30px;
+    border: 1px solid white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    font-family: inter;
+}
+
