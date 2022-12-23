@@ -38,7 +38,7 @@
             1.00 EUR=xx.xx USD
         </div>
         <div class="button-sec">
-            <button class="convert-btn br-6">Convert</button>
+            <button class="convert-btn br-6" (click)="convert()">Convert</button>
         </div>
         <div class="details-sec">
             <div class="result br-w br-6 all-centered"> 
@@ -51,7 +51,7 @@
 </div>
 
 <div class="card-grids">
- <div *ngFor="item of array_items" class="grid-item br-w br-6 all-centered">
-    1.00 EUR=xx.xx USD
+ <div *ngFor="let country of countries" class="grid-item br-w br-6 all-centered">
+    {{country.area}}
  </div>
 </div>

@@ -1,4 +1,5 @@
 import { Component,OnInit } from '@angular/core';
+import { Observable, shareReplay } from 'rxjs';
 import { CurrencyService } from '../currency.service';
 
 @Component({
@@ -12,7 +13,10 @@ export class HomeComponent implements OnInit {
   to:string='USD';
   from:string='EUR';
   
-  constructor(private currencyService:CurrencyService){
+  countries$=new Observable<any>;
+  countries:any=[];
+
+  constructor(private currencyService:CurrencyService ){
     
    }
    array_items=[...Array(9).keys()]
@@ -24,8 +28,16 @@ export class HomeComponent implements OnInit {
     this.from=current_to;
    }
 
+   convert(){
+    this.countries$.subscribe(data=>this.countries=data.slice(0,9))
+  }
+   
 
   ngOnInit(): void {
-     
+    
+  
+  this.countries$= this.currencyService.getCurrency().pipe(
+        shareReplay()
+      );
  }
 }
