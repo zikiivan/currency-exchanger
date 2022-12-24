@@ -92,6 +92,8 @@ select{
     align-items: center;
     height: 61px;
     align-self: end;
+    background: none;
+    border: none;
   }
 
   .convert-btn{
@@ -215,7 +217,7 @@ width: 130px;
   .swap{
     padding: 10px;
     align-self:flex-end;
-    height: 45px;
+    /* height: 45px; */
   }
 
   .swap img{

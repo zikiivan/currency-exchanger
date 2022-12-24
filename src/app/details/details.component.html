@@ -18,7 +18,7 @@
             <!-- From Options -->
             <div class="from ">
                 <label>From</label>
-                <select class="br-6" [(ngModel)]="from">
+                <select class="br-6" [(ngModel)]="from" [disabled]="!amount">
                     <option [value]="'USD'">USD</option>
                     <option [value]="'EUR'">EUR</option>
                 </select>
@@ -30,7 +30,7 @@
             <!-- to options -->
             <div class="to ">
                 <label>To</label>
-                <select class="br-6" [(ngModel)]="to">
+                <select class="br-6" [(ngModel)]="to" [disabled]="!amount">
                     <option [value]="'USD'">USD</option>
                     <option [value]="'EUR'">EUR</option>
                 </select>
@@ -41,7 +41,7 @@
             1.00 EUR=xx.xx USD
         </div>
         <div class="button-sec">
-            <button class="convert-btn br-6" (click)="convert()">Convert</button>
+            <button class="convert-btn br-6" (click)="convert()" [disabled]="!amount">Convert</button>
         </div>
         <div class="details-sec">
             <div class="result br-w br-6 all-centered"> 
@@ -53,7 +53,7 @@
 </div>
 
 <div class="card-grids">
- <div  class="grid-item br-w br-6 all-centered">
+ <div  class="grid-item br-w br-6 all-centered" *ngIf="lineChartData">
     <!-- {{countries[0].area}} -->
     <canvas baseChart class="chart"
         [data]="lineChartData"

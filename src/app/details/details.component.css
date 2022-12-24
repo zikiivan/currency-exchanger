@@ -128,7 +128,7 @@ select{
 
   .result{
     height: 118px;
-    width: 481px;
+    width: 100%;
   }
 
   .details-btn{

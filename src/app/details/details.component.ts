@@ -1,5 +1,5 @@
 import { DatePipe, Location } from '@angular/common';
-import { Component ,OnInit,ViewChild} from '@angular/core';
+import { Component ,OnInit,ViewChild,AfterViewInit} from '@angular/core';
 import { ActivatedRoute, Params } from '@angular/router';
 import { map, Observable, shareReplay } from 'rxjs';
 import { CurrencyService } from '../currency.service';
@@ -12,13 +12,14 @@ import { default as Annotation } from 'chartjs-plugin-annotation';
   templateUrl: './details.component.html',
   styleUrls: ['./details.component.css']
 })
-export class DetailsComponent implements OnInit{
+export class DetailsComponent implements OnInit, AfterViewInit{
   private newLabel? = 'New label';
   amount?:number;
   to:string='USD';
   from:string='EUR';
   start_date?:string;
   end_date?:string;
+  graph_data?:any;
 
   // $countries:Observable
   countries$=new Observable<any>;
@@ -66,6 +67,22 @@ export class DetailsComponent implements OnInit{
         }
     }
 };
+
+  supportedData:any={
+    "success": true,
+    "symbols": {
+      "USD": "United Arab Emirates Dirham",
+      "AUD": "Afghan Afghani",
+      "CAD": "Albanian Lek",
+      "UGX": "Ugandan Shillings"
+      }
+  }
+
+  formattedRates:any;
+
+  supportedCurencies:string[]=[]
+
+  topCurrencies:any=['USD','EUR','JPY','GBP','AUD','CAD','CHF','CNH','HKD'];
   
   constructor(
     private currencyService:CurrencyService, 
@@ -76,87 +93,22 @@ export class DetailsComponent implements OnInit{
             Chart.register(Annotation)
           }
 
-          public lineChartData: ChartConfiguration['data'] = {
-            datasets: [
-              {
-                data: [ 65, 59, 80, 81, 56, 55, 40 ],
-                label: 'usd',
-                // backgroundColor: 'rgba(148,159,177,0.2)',
-                // borderColor: 'rgba(148,159,177,1)',
-                // pointBackgroundColor: 'rgba(148,159,177,1)',
-                // pointBorderColor: '#fff',
-                // pointHoverBackgroundColor: '#fff',
-                // pointHoverBorderColor: 'rgba(148,159,177,0.8)',
-                // fill: 'origin',
-              },
-              {
-                data: [ 28, 48, 40, 19, 86, 27, 90 ],
-                label: 'eur',
-                // backgroundColor: 'rgba(77,83,96,0.2)',
-                // borderColor: 'rgba(77,83,96,1)',
-                // pointBackgroundColor: 'rgba(77,83,96,1)',
-                // pointBorderColor: '#fff',
-                // pointHoverBackgroundColor: '#fff',
-                // pointHoverBorderColor: 'rgba(77,83,96,1)',
-                // fill: 'origin',
-              },
-              {
-                data: [ 180, 480, 770, 90, 1000, 270, 400 ],
-                label: 'GBP',
-                // yAxisID: 'y1',
-                // backgroundColor: 'rgba(255,0,0,0.3)',
-                // borderColor: 'red',
-                // pointBackgroundColor: 'rgba(148,159,177,1)',
-                // pointBorderColor: '#fff',
-                // pointHoverBackgroundColor: '#fff',
-                // pointHoverBorderColor: 'rgba(148,159,177,0.8)',
-                // fill: 'origin',
-              }
-            ],
-            labels: [ 'January', 'February', 'March', 'April', 'May', 'June', 'July' ]
-          };
+          public lineChartData?: ChartConfiguration['data'];
         
-          public lineChartOptions: ChartConfiguration['options'] = {
-            elements: {
-              line: {
-                tension: 0.5
-              }
-            },
-            scales: {
-              y:
-                {
-                  position: 'left',
-                },
-            },
-        
-            // plugins: {
-            //   legend: { display: true },
-            //   annotation: {
-            //     annotations: [
-            //       {
-            //         type: 'line',
-            //         scaleID: 'x',
-            //         value: 'March',
-            //         borderColor: 'orange',
-            //         borderWidth: 2,
-            //         label: {
-            //           display: true,
-            //           position: 'center',
-            //           color: 'orange',
-            //           content: 'LineAnno',
-            //           font: {
-            //             weight: 'bold'
-            //           }
-            //         }
-            //       },
-            //     ],
-            //   }
-            // }
-          };
+          public lineChartOptions?: ChartConfiguration['options'];
         
           public lineChartType: ChartType = 'line';
         
           @ViewChild(BaseChartDirective) chart?: BaseChartDirective;
+
+          getSupportedCurrency(){
+            // this.supportedCurencies=this
+            for(let c in this.supportedData.symbols){
+               this.supportedCurencies.push(c);
+            }
+
+          console.log(this.supportedCurencies);
+          }
         
 
    swap(){
@@ -165,6 +117,7 @@ export class DetailsComponent implements OnInit{
     this.to=current_from;
     this.from=current_to;
    }
+   
 
    convert(){
      this.countries$.subscribe(data=>this.countries=data)
@@ -189,36 +142,77 @@ export class DetailsComponent implements OnInit{
    return last_day;
   }
 
+  formatRates(rates:any){
+    let rate_collection=[];
+  for(let rate in rates){
+    let a:any={};
+     a.date=rate;
+     let b:any=[];
+     for(let m in rates[rate]){
+      let g:any={}
+      g.currency=m;
+      g.amount=rates[rate][m];
+      b.push(g)
+     }
+     a.rate=b
+     rate_collection.push(a);
+  }
+
+  return rate_collection
+  }
+
   formatHistoricalData(data:any){
         let rates=data.rates;
         let lastdays=[]
-        // get all duplicate lastdays
-        for(let rate in rates){
-          //  console.log(rate);
-           lastdays.push(this.getLastDay(rate))           
+
+        // get dulicate value
+        for(let day of this.formattedRates){
+          lastdays.push(this.getLastDay(day.date)) 
         }
+
         //get all pure last days
         let alllastdays=[...new Set(lastdays)]
+
+        let datasets:any=[];
+
+        this.supportedCurencies.forEach((currency)=>{
+          let dset:any={};
+          dset.label=currency
+          // let f=this.formatRates
+          let arrayr:any=[];
+          this.formattedRates.forEach((element:any) => {
+              element.rate.forEach((e:any)=>{
+                 if(currency==e.currency){
+                   arrayr.push(e.amount)
+                 }
+              })
+           });
+           dset.data=arrayr;
+           datasets.push(dset);
+        })
         
         //prepare for graph
         let labels:any[]=[];
-        let da:any[]=[];
         alllastdays.forEach((e,i)=>{
-          // console.log(rates[e]);
            labels.push(new Date(e).toLocaleString('default', { month: 'long' }));
-           dd.push()
-          
         })
-        console.log(labels);
 
-        const month = new Date().toLocaleString('default', { month: 'long' });
-        console.log(month)
+        return {
+          labels,
+          datasets
+        }
         
   }
+
+  
 
 
   ngOnInit(): void {
 
+    this.getSupportedCurrency();
+    this.formattedRates= this.formatRates(this.historicalData.rates);
+    this.graph_data=this.formatHistoricalData(this.historicalData);
+    console.log(this.formattedRates)
      this.aroute.params.subscribe((data:any)=>{
       if(data.conversion){
 
@@ -234,8 +228,55 @@ export class DetailsComponent implements OnInit{
      this.countries$= this.currencyService.getCurrency().pipe(
       shareReplay()
     );
+    
+   
+  
+ }
 
-    this.formatHistoricalData(this.historicalData);
-     
+ ngAfterViewInit(): void {
+  this.lineChartData={
+    datasets:this.graph_data.datasets ,
+    labels: this.graph_data.labels 
+  };
+
+  this.lineChartOptions= {
+    elements: {
+      line: {
+        tension: 0.5
+      }
+    },
+    scales: {
+      y:
+        {
+          position: 'left',
+        },
+    },
+
+    // plugins: {
+    //   legend: { display: true },
+    //   annotation: {
+    //     annotations: [
+    //       {
+    //         type: 'line',
+    //         scaleID: 'x',
+    //         value: 'March',
+    //         borderColor: 'orange',
+    //         borderWidth: 2,
+    //         label: {
+    //           display: true,
+    //           position: 'center',
+    //           color: 'orange',
+    //           content: 'LineAnno',
+    //           font: {
+    //             weight: 'bold'
+    //           }
+    //         }
+    //       },
+    //     ],
+    //   }
+    // }
+  };
+
+  console.log(this.lineChartData)
  }
 }
