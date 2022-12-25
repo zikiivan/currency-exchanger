@@ -1,5 +1,5 @@
 import { Component,OnInit } from '@angular/core';
-import { Observable, shareReplay } from 'rxjs';
+import { debounce, debounceTime, distinctUntilChanged, Observable, of, shareReplay, Subject, switchMap } from 'rxjs';
 import { CurrencyService } from '../currency.service';
 
 @Component({
@@ -18,8 +18,12 @@ export class HomeComponent implements OnInit {
   rates$=new Observable<any>;
   countries:any=[];
 
-  topCurrencies:any=['USD','EUR','JPY','GBP','AUD','CAD','CHF','CNH','HKD'];
-  fromRates:any=[];
+  topCurrencies:any=['USD','EUR','JPY','GBP','AUD','CAD','CHF','CNY','HKD'];
+  fromRates?:any=[];
+  toAmount?:any;
+  fromAmount: any;
+  toCurrenciesRates?:any[]=[];
+  $amount = new Subject<number>();
   constructor(private currencyService:CurrencyService ){
     
    }
@@ -35,14 +39,30 @@ export class HomeComponent implements OnInit {
     }
    }
 
+   onAmountChange(){
+    console.log(this.amount);
+    this.$amount.next(this.amount!);
+    // this.$amount
+     this.$amount.pipe(
+      debounceTime(100),
+      distinctUntilChanged()
+     ).subscribe((data)=>{
+      this.currencyService.setAmountSubject(data);
+     })
+   }
+
 
 
    convert(){
-    this.currencyService.getConversion(this.from,this.to,this.topCurrencies).subscribe((data)=>{
-      console.log(data);
-      this.fromRates=this.currencyService.getFromRate(data,this.from)
-      console.log(this.fromRates);
+
+    this.currencyService.getConversionSubject().subscribe((data:any)=>{
+      this.fromRates=this.currencyService.getFromRate(data.rates,this.from);
+      this.toAmount=this.fromRates.find((datas:any)=>datas.currency==this.to).amount;
+      this.fromAmount=this.fromRates.find((datas:any)=>datas.currency==this.from).amount;
+      this.toCurrenciesRates=this.fromRates.filter((x:any) => this.topCurrencies.includes(x.currency));
+      console.log(this.toCurrenciesRates);
     })
+
   }
    
 
@@ -56,7 +76,7 @@ export class HomeComponent implements OnInit {
       this.currencyService.getSupportedSubject().subscribe((data:any)=>{
         if(data!=0){
           this.supportedCurrencies=data;
-          // console.log(this.supportedCurrencies);
+          console.log(this.supportedCurrencies)
         }
       })
  }

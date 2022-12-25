@@ -1,5 +1,5 @@
 <div class="head-sec">
-    <h1> EUR- European Union Euro</h1>
+    <h1> {{from_data.currency}}-{{from_data.description}}</h1>
     <button (click)="back()" class="back-btn br-6">Back To Home</button>
 </div>
 
@@ -7,10 +7,10 @@
     <div class="amount-section">
         <div class="amount">
             <label>Amount</label>  
-            <input type="number" class="br-w br-6" [(ngModel)]="amount"/>
+            <input type="number" class="br-w br-6" [(ngModel)]="amount" (keyup)="onAmountChange()"/>
         </div>
         <div class="exchange-rate br-w br-6 all-centered">
-            1.00 EUR=xx.xx USD
+            <span *ngIf="fromRates.length>0"> 1 {{from}}={{toAmount}} {{to}}</span>
         </div>
     </div>
     <div class="currency-section">
@@ -18,9 +18,8 @@
             <!-- From Options -->
             <div class="from ">
                 <label>From</label>
-                <select class="br-6" [(ngModel)]="from" [disabled]="!amount">
-                    <option [value]="'USD'">USD</option>
-                    <option [value]="'EUR'">EUR</option>
+                <select class="br-6" [(ngModel)]="from" [disabled]="!amount" (change)="convert()">
+                    <option *ngFor="let currency of supportedCurrencies;" [value]="currency.currency">{{currency.currency}}</option>
                 </select>
             </div>
             <!-- swap  -->
@@ -30,22 +29,21 @@
             <!-- to options -->
             <div class="to ">
                 <label>To</label>
-                <select class="br-6" [(ngModel)]="to" [disabled]="!amount">
-                    <option [value]="'USD'">USD</option>
-                    <option [value]="'EUR'">EUR</option>
+                <select class="br-6" [(ngModel)]="to" [disabled]="!amount" (change)="convert()">
+                    <option *ngFor="let currency of supportedCurrencies;" [value]="currency.currency">{{currency.currency}}</option>
                 </select>
             </div>
             
         </div>
         <div class="exchange-rates all-centered">
-            1.00 EUR=xx.xx USD
+            <span *ngIf="fromRates.length>0"> 1 {{from}}={{toAmount}} {{to}}</span>
         </div>
         <div class="button-sec">
             <button class="convert-btn br-6" (click)="convert()" [disabled]="!amount">Convert</button>
         </div>
         <div class="details-sec">
             <div class="result br-w br-6 all-centered"> 
-                XX.XX {{to}}
+                <span *ngIf="fromRates.length>0">{{toAmount*amount!}} {{to}}</span>
             </div>
         </div>
 

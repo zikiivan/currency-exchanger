@@ -1,7 +1,7 @@
 import { DatePipe, Location } from '@angular/common';
 import { Component ,OnInit,ViewChild,AfterViewInit} from '@angular/core';
 import { ActivatedRoute, Params } from '@angular/router';
-import { map, Observable, shareReplay } from 'rxjs';
+import { debounceTime, distinctUntilChanged, map, Observable, shareReplay, Subject } from 'rxjs';
 import { CurrencyService } from '../currency.service';
 import { Chart, ChartConfiguration, ChartEvent, ChartType } from 'chart.js';
 import { BaseChartDirective } from 'ng2-charts';
@@ -13,17 +13,28 @@ import { default as Annotation } from 'chartjs-plugin-annotation';
   styleUrls: ['./details.component.css']
 })
 export class DetailsComponent implements OnInit, AfterViewInit{
-  private newLabel? = 'New label';
+
   amount?:number;
   to:string='USD';
   from:string='EUR';
+  supportedCurrencies:any[]=[];
+  
+  countries$=new Observable<any>;
+  rates$=new Observable<any>;
+  countries:any=[];
+
+  topCurrencies:any=['USD','EUR','JPY','GBP','AUD','CAD','CHF','CNY','HKD'];
+  fromRates?:any=[];
+  toAmount?:any;
+  fromAmount: any;
+  toCurrenciesRates?:any[]=[];
+  $amount = new Subject<number>();
+
   start_date?:string;
   end_date?:string;
   graph_data?:any;
+  from_data?:any;
 
-  // $countries:Observable
-  countries$=new Observable<any>;
-  countries:any;
   historicalData={
     "success": true,
     "timeseries": true,
@@ -81,8 +92,6 @@ export class DetailsComponent implements OnInit, AfterViewInit{
   formattedRates:any;
 
   supportedCurencies:string[]=[]
-
-  topCurrencies:any=['USD','EUR','JPY','GBP','AUD','CAD','CHF','CNH','HKD'];
   
   constructor(
     private currencyService:CurrencyService, 
@@ -111,17 +120,41 @@ export class DetailsComponent implements OnInit, AfterViewInit{
           }
         
 
-   swap(){
-    let current_to=this.to;
-    let current_from =this.from;
-    this.to=current_from;
-    this.from=current_to;
-   }
-   
-
-   convert(){
-     this.countries$.subscribe(data=>this.countries=data)
-   }
+          swap(){
+            let current_to=this.to;
+            let current_from =this.from;
+            this.to=current_from;
+            this.from=current_to;
+        
+            if(this.fromRates.length>0){
+               this.convert()
+            }
+           }
+        
+           onAmountChange(){
+            console.log(this.amount);
+            this.$amount.next(this.amount!);
+            // this.$amount
+             this.$amount.pipe(
+              debounceTime(100),
+              distinctUntilChanged()
+             ).subscribe((data)=>{
+              this.currencyService.setAmountSubject(data);
+             })
+           }
+        
+        
+        
+           convert(){
+            this.currencyService.getConversionSubject().subscribe((data:any)=>{
+              this.fromRates=this.currencyService.getFromRate(data.rates,this.from);
+              this.toAmount=this.fromRates.find((datas:any)=>datas.currency==this.to).amount;
+              this.fromAmount=this.fromRates.find((datas:any)=>datas.currency==this.from).amount;
+              this.toCurrenciesRates=this.fromRates.filter((x:any) => this.topCurrencies.includes(x.currency));
+            })
+        
+          }
+           
 
   back(){
     this.location.back();
@@ -204,15 +237,25 @@ export class DetailsComponent implements OnInit, AfterViewInit{
         
   }
 
+  getHistoricalData(){
+
+    let symbols=this.to+','+this.from;
+    this.currencyService.getHistoricalData(this.start_date!,this.end_date!,symbols).subscribe((data)=>{
+      console.log(data);
+    })
+  }
+
   
 
 
   ngOnInit(): void {
-
-    this.getSupportedCurrency();
+    this.getDates()
+    // this.getSupportedCurrency();
     this.formattedRates= this.formatRates(this.historicalData.rates);
     this.graph_data=this.formatHistoricalData(this.historicalData);
     console.log(this.formattedRates)
+
+    // set to and from (route parameters)
      this.aroute.params.subscribe((data:any)=>{
       if(data.conversion){
 
@@ -220,14 +263,42 @@ export class DetailsComponent implements OnInit, AfterViewInit{
         console.log(to_from)
         this.from=to_from[0];
         this.to=to_from[1];
+        this.from_data;
+
+        this.getHistoricalData()
       }
      })     
 
-     this.getDates()
+    
+
+
 
      this.countries$= this.currencyService.getCurrency().pipe(
       shareReplay()
     );
+
+    this.currencyService.getSupportedSubject().subscribe((data:any)=>{
+      if(data!=0){
+        console.log(data);
+        this.from_data=data.find((supported:any)=>supported.currency==this.from)
+        this.supportedCurrencies=data;
+      }
+    })
+
+    this.currencyService.getAmountSubject().subscribe((data)=>{
+      if(data!=0){
+        this.amount=data;
+      }
+      
+    })
+
+    this.currencyService.getConversionSubject().subscribe((data)=>{
+      if(data!=0){
+        console.log(data);
+      }
+    })
+    
+    this.convert()
     
    
   

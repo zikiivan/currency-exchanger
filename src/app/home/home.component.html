@@ -4,10 +4,10 @@
     <div class="amount-section">
         <div class="amount">
             <label>Amount</label>  
-            <input type="number" class="br-w br-6" [(ngModel)]="amount"/>
+            <input type="number" class="br-w br-6" [(ngModel)]="amount" (keyup)="onAmountChange()"/>
         </div>
         <div class="exchange-rate br-w br-6 all-centered">
-            1.00 EUR=xx.xx USD
+            <span *ngIf="fromRates.length>0"> 1 {{from}}={{toAmount}} {{to}}</span>
         </div>
     </div>
     <div class="currency-section">
@@ -15,7 +15,7 @@
             <!-- From Options -->
             <div class="from ">
                 <label>From</label>
-                <select class="br-6" [(ngModel)]="from"[disabled]="!amount">
+                <select class="br-6" [(ngModel)]="from"[disabled]="!amount" (change)="convert()">
                     <option *ngFor="let currency of supportedCurrencies;" [value]="currency.currency">{{currency.currency}}</option>
                 </select>
             </div>
@@ -26,21 +26,21 @@
             <!-- to options -->
             <div class="to ">
                 <label>To</label>
-                <select class="br-6" [(ngModel)]="to"[disabled]="!amount">
+                <select class="br-6" [(ngModel)]="to"[disabled]="!amount" (change)="convert()">
                     <option *ngFor="let currency of supportedCurrencies;" [value]="currency.currency">{{currency.currency}}</option>
                 </select>
             </div>
             
         </div>
         <div class="exchange-rates all-centered">
-           <span *ngIf="fromRates.length>0"> 1 {{from}}={{(fromRates| rates:to).amount}} {{to}}</span>
+           <span *ngIf="fromRates.length>0"> 1 {{from}}={{toAmount}} {{to}}</span>
         </div>
         <div class="button-sec">
             <button class="convert-btn br-6" (click)="convert()"[disabled]="!amount">Convert</button>
         </div>
         <div class="details-sec">
             <div class="result br-w br-6 all-centered"> 
-                <span *ngIf="fromRates.length>0">{{((fromRates| rates:to).amount)*amount!}} {{to}}</span>
+                <span *ngIf="fromRates.length>0">{{toAmount*amount!}} {{to}}</span>
             </div>
             <button class="details-btn br-6" [routerLink]="['/details',(from+'-'+to)]"[disabled]="!amount">More Details</button>
         </div>
@@ -49,7 +49,7 @@
 </div>
 
 <div class="card-grids">
- <div *ngFor="let rate of fromRates.slice(0,9)" class="grid-item br-w br-6 all-centered">
+ <div *ngFor="let rate of toCurrenciesRates" class="grid-item br-w br-6 all-centered">
     {{amount}} {{from}} = {{amount!*(rate.amount)}} {{rate?.currency}}
  </div>
 </div>
