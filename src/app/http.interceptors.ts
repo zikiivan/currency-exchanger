@@ -7,7 +7,7 @@ import { catchError, map, throwError } from 'rxjs';
 export class AppInterceptor implements HttpInterceptor {
     constructor(){
     }
-    API_KEY="vVS5z9anSDMWleKJT0I55qA9CnlC5F0w";
+    API_KEY="cHbxCaxkS6NXwrKDJm0nBzxUuvXAdGLd";
   intercept(req: HttpRequest<any>, next: HttpHandler) {
     const authReq = req.clone({
          setHeaders:{
