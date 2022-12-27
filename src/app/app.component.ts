@@ -1,5 +1,6 @@
 import { Component,OnInit } from '@angular/core';
 import { CurrencyService } from './currency.service';
+import { SupportedCurrencies } from './supported';
 
 @Component({
   selector: 'app-root',
@@ -14,7 +15,7 @@ export class AppComponent implements OnInit {
   constructor(
     private currencyService:CurrencyService
   ){}
- getHistoricalData(supported:any[]){
+ getHistoricalData(supported:SupportedCurrencies[]){
   this.historicalDays=this.currencyService.getPreviousDays();
   if(supported){
     let supported_currencies=''
@@ -31,12 +32,11 @@ export class AppComponent implements OnInit {
 }
 
 ngOnInit(): void {
-    this.currencyService.getSupportedSubject().subscribe((data:any)=>{
+    this.currencyService.getSupportedSubject().subscribe((data:SupportedCurrencies|any)=>{
       if(data!=0){
         this.supportedCurrencies=data;
-        // this.getHistoricalData(this.supportedCurrencies);
       }else{
-        this.currencyService.supported().subscribe((supported:any)=>{
+        this.currencyService.supported().subscribe((supported:SupportedCurrencies|any)=>{
           this.supportedCurrencies=supported;
           this.currencyService.setSupportedSubject(supported);
           this.getHistoricalData(supported);
