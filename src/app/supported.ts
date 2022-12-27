@@ -531,3 +531,20 @@ export const HISTORICALDATA={
         "ZWL": 365.160006
     }
 }
+
+export interface SupportedCurrencies{
+    currency:string
+    description:string
+}
+
+export interface Rates{
+    currency:string
+    amount:number
+}
+export interface HistoricalData{
+    base:string
+    date:string
+    rates:Rates[]
+    success:boolean
+    timestamp:number
+}

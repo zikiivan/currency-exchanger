@@ -2,7 +2,7 @@ import { DatePipe } from '@angular/common';
 import { HttpClient , HttpHeaders, HttpParams} from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, from, map, mergeMap, Observable, of, shareReplay, toArray } from 'rxjs';
-import { HISTORICALDATA, LATEST, SUPPORTED } from './supported';
+import { HistoricalData, HISTORICALDATA, LATEST, Rates, SUPPORTED } from './supported';
 
 @Injectable({
   providedIn: 'root'
@@ -14,7 +14,7 @@ export class CurrencyService {
   URL="https://api.apilayer.com/fixer";
   URL2="https://api.apilayer.com/fixer/";
   $supported=new BehaviorSubject(0);
-  $conversion=new BehaviorSubject(0);
+  $conversion=new BehaviorSubject<HistoricalData|any>(0);
   $amount=new BehaviorSubject(0);
   $graph=new BehaviorSubject(0);
   constructor(private http:HttpClient,
@@ -29,13 +29,13 @@ export class CurrencyService {
     return this.$supported.asObservable();
   }
 
-  //supported currencies stored
+  //all conversions stored
   setConversionSubject(data:any){
    this.$conversion.next(data); 
   }
   
-  // return supported subject
-  getConversionSubject(){
+  // return all conversions
+  getConversionSubject():(HistoricalData| any){
     return this.$conversion.asObservable();
   }
   //amount stored
@@ -43,16 +43,16 @@ export class CurrencyService {
    this.$amount.next(data); 
   }
   
-  // amount retrieved subject
+  // amount retrieved
   getAmountSubject(){
     return this.$amount.asObservable();
   }
-  //supported currencies stored
+  //graph data stored
   setGraphSubject(data:any){
    this.$graph.next(data); 
   }
   
-  // return supported subject
+  // return graph data
   getGraphSubject(){
     return this.$graph.asObservable();
   }
@@ -60,20 +60,6 @@ export class CurrencyService {
   
   //get suported currencies
    supported(){
-    
-    // return of(SUPPORTED)
-    // .pipe(
-    //   map((data)=>{
-    //     let symbols=[];
-    //     for(let sy in data.symbols){
-    //       let symbol:any={}
-    //       symbol.currency=sy;
-    //       symbol.description=data.symbols[sy];
-    //       symbols.push(symbol);
-    //    }
-    //    return symbols
-    //   })
-    // );
     return this.http.get<any>(`${this.URL}/symbols`).pipe(
       map((data)=>{
         let symbols=[];
@@ -89,14 +75,6 @@ export class CurrencyService {
   }
 
   getConversion(){
-  //   return of(LATEST)
-  //   .pipe(
-  //   map((data)=>{
-  //    let  formated= this.formatRates(data.rates)
-  //    data.rates=formated;
-  //   return data
-  //   })
-  // )
     return this.http.get<any>(
       `${this.URL}/latest`).pipe(
         map((data)=>{
@@ -114,20 +92,6 @@ export class CurrencyService {
    
   }
   getHistory(date:string){
-   
-    // let searchParams=new HttpParams();
-    // searchParams=searchParams.append("symbols",symbols)
-
-    // return of(HISTORICALDATA).pipe(map((data)=>{
-    //   let formated= this.formatRates(data.rates)
-    //   return {
-    //     date:data.date,
-    //     rates:formated
-    //   }
-    // }))
-    // ,{
-    //   params:searchParams
-    // }
      return this.http.get<any>(`${this.URL}/${date}`).pipe(map((data)=>{
       let formated= this.formatRates(data.rates)
       return {
@@ -165,13 +129,13 @@ export class CurrencyService {
   return rate_collection
   }
 
-  async getFromRate(data:any, from:any){
-    let from_rates:any=[];
+  async getFromRate(data:Rates[], from:string){
+
+    let from_rates:Rates[]=[];
     if(data){
-      
-      let current_from_value= data.find((data2:any)=>data2.currency==from).amount;
-      data.forEach((datas:any)=>{
-         let amount=((datas.amount)/current_from_value);
+      let current_from_value=  data.find((data2:any)=>data2.currency==from)?.amount;
+      data.forEach((datas:Rates)=>{
+         let amount:number=((datas.amount)/current_from_value!);
          from_rates.push({
           amount:amount,
           currency:datas.currency

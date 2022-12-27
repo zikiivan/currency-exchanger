@@ -6,6 +6,7 @@ import { CurrencyService } from '../currency.service';
 import { Chart, ChartConfiguration, ChartEvent, ChartType } from 'chart.js';
 import { BaseChartDirective } from 'ng2-charts';
 import { default as Annotation } from 'chartjs-plugin-annotation';
+import { HistoricalData, Rates, SupportedCurrencies } from '../supported';
 
 @Component({
   selector: 'app-details',
@@ -17,67 +18,19 @@ export class DetailsComponent implements OnInit, AfterViewInit{
   amount?:number;
   to:string='USD';
   from:string='EUR';
-  supportedCurrencies:any[]=[];
-  
-  countries$=new Observable<any>;
-  rates$=new Observable<any>;
-  countries:any=[];
+  supportedCurrencies:SupportedCurrencies[]=[];
 
   topCurrencies:any=['USD','EUR','JPY','GBP','AUD','CAD','CHF','CNY','HKD'];
-  fromRates?:any=[];
-  toAmount?:any;
-  fromAmount: any;
-  toCurrenciesRates?:any[]=[];
+  fromRates:Rates[]=[];
+  toAmount?:number;
+  fromAmount?: number;
+  toCurrenciesRates?:Rates[]=[];
   $amount = new Subject<number>();
 
   start_date?:string;
   end_date?:string;
   graph_data?:any;
   from_data?:any;
-
-  historicalData={
-    "success": true,
-    "timeseries": true,
-    "start_date": "2012-05-01",
-    "end_date": "2012-05-03",
-    "base": "EUR",
-    "rates": {
-        "2012-05-01":{
-          "USD": 1.322891,
-          "AUD": 1.278047,
-          "CAD": 1.302303
-        },
-        "2012-05-02": {
-          "USD": 1.315066,
-          "AUD": 1.274202,
-          "CAD": 1.299083
-        }
-        ,
-        "2012-02-29": {
-          "USD": 1.314491,
-          "AUD": 1.280135,
-          "CAD": 1.296868
-        }
-        ,
-        "2012-05-31": {
-          "USD": 1.314491,
-          "AUD": 1.280135,
-          "CAD": 1.296868
-        }
-        ,
-        "2012-04-30": {
-          "USD": 1.314491,
-          "AUD": 1.280135,
-          "CAD": 1.296868
-        }
-        ,
-        "2012-03-31": {
-          "USD": 1.314491,
-          "AUD": 1.280135,
-          "CAD": 1.296868
-        }
-    }
-};
 
   supportedData:any={
     "success": true,
@@ -93,6 +46,7 @@ export class DetailsComponent implements OnInit, AfterViewInit{
 
   supportedCurencies:string[]=[]
   historicalDays:string[]=[]
+  conversion?: number;
   
   constructor(
     private currencyService:CurrencyService, 
@@ -144,14 +98,14 @@ export class DetailsComponent implements OnInit, AfterViewInit{
         
         
            convert(){
-            this.currencyService.getConversionSubject().subscribe((data:any)=>{
-              this.currencyService.getFromRate(data.rates,this.from).then((dd)=>{
+            this.currencyService.getConversionSubject().subscribe((data:Rates[]|any)=>{
+              this.currencyService.getFromRate(data,this.from).then((dd)=>{
                 this.fromRates= dd;
-                this.toAmount=this.fromRates.find((datas:any)=>datas.currency==this.to)?.amount;
-                this.fromAmount=this.fromRates.find((datas:any)=>datas.currency==this.from)?.amount;
-                this.toCurrenciesRates=this.fromRates.filter((x:any) => this.topCurrencies.includes(x.currency));
+                this.toAmount=this.fromRates.find((datas:Rates)=>datas.currency==this.to)?.amount;
+                this.fromAmount=this.fromRates.find((datas:Rates)=>datas.currency==this.from)?.amount;
+                this.toCurrenciesRates=this.fromRates.filter((x:Rates) => this.topCurrencies.includes(x.currency));
             // console.log(this.toCurrenciesRates);
-            
+            this.conversion=this.amount!*this.toAmount!;
               });
 
               this.getHistoricalData()
@@ -268,7 +222,7 @@ export class DetailsComponent implements OnInit, AfterViewInit{
 
     this.currencyService.getSupportedSubject().subscribe((data:any)=>{
       if(data!=0){
-        this.from_data=data.find((supported:any)=>supported.currency==this.from)
+        this.from_data=data.find((supported:SupportedCurrencies)=>supported.currency==this.from)
         this.supportedCurrencies=data;
       }
     })
@@ -280,7 +234,7 @@ export class DetailsComponent implements OnInit, AfterViewInit{
       
     })
 
-    this.currencyService.getConversionSubject().subscribe((data)=>{
+    this.currencyService.getConversionSubject().subscribe((data:HistoricalData|any)=>{
       if(data!=0){
         // console.log(data);
       }

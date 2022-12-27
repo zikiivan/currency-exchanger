@@ -1,6 +1,7 @@
 import { Component,OnInit } from '@angular/core';
 import { debounce, debounceTime, distinctUntilChanged, Observable, of, shareReplay, Subject, switchMap } from 'rxjs';
 import { CurrencyService } from '../currency.service';
+import { HistoricalData, Rates, SupportedCurrencies } from '../supported';
 
 @Component({
   selector: 'app-home',
@@ -12,18 +13,14 @@ export class HomeComponent implements OnInit {
   amount?:number;
   to:string='USD';
   from:string='EUR';
-  supportedCurrencies:any[]=[];
-  
-  countries$=new Observable<any>;
-  rates$=new Observable<any>;
-  countries:any=[];
-
+  supportedCurrencies:SupportedCurrencies[]=[];
   topCurrencies:any=['USD','EUR','JPY','GBP','AUD','CAD','CHF','CNY','HKD'];
-  fromRates:any=[];
-  toAmount?:any;
-  fromAmount: any;
-  toCurrenciesRates?:any[]=[];
+  fromRates:Rates[]=[];
+  toAmount?:number=0;
+  fromAmount?: number=0;
+  toCurrenciesRates?:Rates[]=[];
   $amount = new Subject<number>();
+  conversion?:number;
   constructor(private currencyService:CurrencyService ){
     
    }
@@ -53,14 +50,17 @@ export class HomeComponent implements OnInit {
 
    convert(){
 
-    this.currencyService.getConversionSubject().subscribe((data:any)=>{
+    this.currencyService.getConversionSubject().subscribe((data:Rates[]|any)=>{
       if(data!=0){
-        this.currencyService.getFromRate(data.rates,this.from).then((dd)=>{
+        console.log(data)
+        this.currencyService.getFromRate(data,this.from).then((dd)=>{
           this.fromRates= dd;
-          this.toAmount=this.fromRates.find((datas:any)=>datas.currency==this.to)?.amount;
-          this.fromAmount=this.fromRates.find((datas:any)=>datas.currency==this.from)?.amount;
-          this.toCurrenciesRates=this.fromRates.filter((x:any) => this.topCurrencies.includes(x.currency));
-      // console.log(this.toCurrenciesRates);
+          console.log(dd)
+          this.toAmount=this.fromRates.find((datas:Rates)=>datas.currency==this.to)?.amount;
+          this.fromAmount=this.fromRates.find((datas:Rates)=>datas.currency==this.from)?.amount;
+          this.toCurrenciesRates=this.fromRates.filter((x:Rates) => this.topCurrencies.includes(x.currency));
+      console.log(this.toCurrenciesRates);
+          this.conversion=this.amount!*this.toAmount!;
         });
       }
     })
@@ -81,14 +81,22 @@ export class HomeComponent implements OnInit {
         }
       })
 
-      this.currencyService.getConversionSubject().subscribe((data:any)=>{
+      this.currencyService.getConversionSubject().subscribe((data:Rates[]|any)=>{
         if(data!=0){
-          this.currencyService.getFromRate(data,this.from).then((dd)=>{
+          console.log(data)
+          this.currencyService.getFromRate(data,this.from).then((dd:Rates[])=>{
             this.fromRates= dd;
+            
             if(this.fromRates){
+              console.log(this.fromRates)
+              console.log(dd)
+              console.log(this.to)
+
               this.toAmount=this.fromRates.find((datas:any)=>datas.currency==this.to)?.amount;
-              this.fromAmount=this.fromRates.find((datas:any)=>datas.currency==this.from)?.amount;
-              this.toCurrenciesRates=this.fromRates.filter((x:any) => this.topCurrencies.includes(x.currency));
+              console.log(this.toAmount);
+              this.fromAmount=this.fromRates.find((datas:Rates)=>datas.currency==this.from)?.amount;
+              this.toCurrenciesRates=this.fromRates.filter((x:Rates) => this.topCurrencies.includes(x.currency));
+              console.log(this.toCurrenciesRates)
             }
           });
         
