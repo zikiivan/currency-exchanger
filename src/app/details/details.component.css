@@ -1,0 +1,257 @@
+h1{
+    font-weight: normal;
+    font-size: 40px;
+}
+
+.sticky-pannel{
+   display: grid;
+   grid-template-columns: 1fr 2fr;
+   padding: 30px;
+   background-color: black;
+}
+
+.amount-section{
+   display: flex;
+   flex-direction: column;
+   padding-right: 70px;
+   justify-content: space-between;
+   padding-bottom: 20px;
+}
+.amount{
+  display: grid;
+  grid-template-rows: auto 1fr;
+  /* width: 355px; */
+}
+.amount label{
+  font-size: 25px;
+}
+
+.amount input{
+        background-color: transparent;
+        text-align: center;
+        width: 100%;
+        height: 61px;
+}
+
+.exchange-rate{
+    height: 80px;
+}
+
+.exchange-rates{
+    display: none;
+}
+
+.currency-section{
+  /* display: flex; */
+  
+}
+
+.to-from{
+  display: flex;
+  width: 835.24px;
+}
+
+.from, .to{
+  display: grid;
+  grid-template-rows: auto 1fr;
+  width: 355px;
+}
+
+.from label, .to label{
+    font-size: 25px;
+}
+
+select{
+    background-color: #6C767D;
+    text-align: center;
+    width: 100%;
+    height: 61px;
+    padding-right: 30px;
+    -moz-appearance:none !important;
+    -webkit-appearance: none !important; 
+    appearance: none !important;
+    background-image: url(src/assets/down.svg);
+    background-repeat: no-repeat;
+    background-position: 310px ;
+    
+}
+
+
+
+.from{
+    
+  }
+
+.to{
+  }
+
+  .swap{
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 61px;
+    align-self: end;
+  }
+
+  .convert-btn{
+    height: 61px;
+    width: 100%;
+    background-color: #2684FF;
+    margin-top: 30px;
+    border: none;
+    cursor:pointer;
+  }
+  .head-sec{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .back-btn{
+    /* height: 61px; */
+    /* width: 100%; */
+    padding: 8px 20px;
+    background-color: #2684FF;
+    margin-top: 30px;
+    border: none;
+    cursor:pointer;
+    margin-bottom: 10px;
+  }
+
+  .details-sec{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 30px;   
+  }
+
+  .result{
+    height: 118px;
+    width: 100%;
+  }
+
+  .details-btn{
+    height: 80px;
+    width: 312px;
+    background-color: #2684FF;
+    border: none;
+    cursor:pointer;
+  }
+
+.card-grids{
+   margin-top: 65px;
+   display: grid;
+   grid-template-columns: 1fr;
+   gap: 30px;
+   padding-bottom: 40px;
+}
+
+.grid-item{
+   height: auto;
+   background-color: black;
+}
+
+@media only screen and (max-width: 600px) {
+    h1{
+        font-size: 15px;
+        margin-top: 20px;
+    }
+
+.sticky-pannel{
+   display: flex;
+   flex-direction: column;
+   padding: 10px;
+}
+
+.exchange-rate{
+    display: none;
+}
+
+.exchange-rates{
+    display: flex;
+    height: auto;
+    margin-top: 10px;
+}
+
+.amount label{
+    font-size: 14px;
+}
+.amount-section{
+    padding: 0px;
+}
+.amount{
+    padding: 0px;
+}
+.amount input{
+        height: 45px;
+        width: auto;
+} 
+
+.currency-section{
+    margin-top: 10px;
+}
+
+.currency-section label{
+    font-size: 14px;
+}
+
+.to-from{
+    display: flex;
+    width: auto;
+}
+
+.from, .to{
+width: 130px;
+}
+
+
+.convert-btn{
+    height: 28px;
+    margin-top: 10px;
+  }
+
+  .details-sec{
+    margin-top: 10px;   
+    display: block;
+    width: 100%;
+  }
+
+  .result{
+    height: 63px;
+    width: auto;
+  }
+
+  .details-btn{
+     height: 28px;
+    width: 100%;
+    margin-top: 10px;
+  }
+
+  .swap{
+    padding: 10px;
+    align-self:flex-end;
+    height: 45px;
+  }
+
+  .swap img{
+    height: 14px;
+    width: auto;
+  }
+
+  .card-grids{
+    margin-top: 20px;
+   grid-template-columns: 1fr;
+   gap: 10px;
+}
+
+.grid-item{
+   min-height: 84px;
+}
+
+}
+
+
+
+
+

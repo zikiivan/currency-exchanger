@@ -8,13 +8,19 @@ import { HomeComponent } from './home/home.component';
 import { DetailsComponent } from './details/details.component';
 import { CurrencyService } from './currency.service';
 import { FormsModule } from '@angular/forms';
-import { HttpClientModule } from "@angular/common/http";
+import { HttpClientModule, HTTP_INTERCEPTORS } from "@angular/common/http";
+import { DatePipe } from '@angular/common';
+import { AppInterceptor } from './http.interceptors';
+import { RatesPipe } from './rates.pipe';
+import { HistoricalComponent } from './historical/historical.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     HomeComponent,
-    DetailsComponent
+    DetailsComponent,
+    RatesPipe,
+    HistoricalComponent
   ],
   imports: [
     BrowserModule,
@@ -23,7 +29,9 @@ import { HttpClientModule } from "@angular/common/http";
     FormsModule,
     NgChartsModule
   ],
-  providers: [CurrencyService],
+  providers: [CurrencyService, DatePipe,
+    { provide: HTTP_INTERCEPTORS, useClass: AppInterceptor, multi: true },
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
