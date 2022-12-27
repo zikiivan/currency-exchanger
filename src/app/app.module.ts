@@ -12,13 +12,15 @@ import { HttpClientModule, HTTP_INTERCEPTORS } from "@angular/common/http";
 import { DatePipe } from '@angular/common';
 import { AppInterceptor } from './http.interceptors';
 import { RatesPipe } from './rates.pipe';
+import { HistoricalComponent } from './historical/historical.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     HomeComponent,
     DetailsComponent,
-    RatesPipe
+    RatesPipe,
+    HistoricalComponent
   ],
   imports: [
     BrowserModule,

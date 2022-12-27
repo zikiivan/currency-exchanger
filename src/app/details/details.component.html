@@ -1,5 +1,5 @@
 <div class="head-sec">
-    <h1> {{from_data.currency}}-{{from_data.description}}</h1>
+    <h1> {{from_data?.currency}}-{{from_data?.description}}</h1>
     <button (click)="back()" class="back-btn br-6">Back To Home</button>
 </div>
 
@@ -43,7 +43,7 @@
         </div>
         <div class="details-sec">
             <div class="result br-w br-6 all-centered"> 
-                <span *ngIf="fromRates.length>0">{{toAmount*amount!}} {{to}}</span>
+                <span *ngIf="(amount)">{{toAmount*amount!}} {{to}}</span>
             </div>
         </div>
 
@@ -52,10 +52,6 @@
 
 <div class="card-grids">
  <div  class="grid-item br-w br-6 all-centered" *ngIf="lineChartData">
-    <!-- {{countries[0].area}} -->
-    <canvas baseChart class="chart"
-        [data]="lineChartData"
-        [options]="lineChartOptions"
-        [type]="lineChartType"></canvas>
+        <app-historical [data]="graph_data" style="width:100%"></app-historical>
  </div>
 </div>

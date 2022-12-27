@@ -1,7 +1,8 @@
+import { DatePipe } from '@angular/common';
 import { HttpClient , HttpHeaders, HttpParams} from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, map, Observable, of, shareReplay } from 'rxjs';
-import { LATEST, SUPPORTED } from './supported';
+import { BehaviorSubject, from, map, mergeMap, Observable, of, shareReplay, toArray } from 'rxjs';
+import { HISTORICALDATA, LATEST, SUPPORTED } from './supported';
 
 @Injectable({
   providedIn: 'root'
@@ -10,10 +11,14 @@ export class CurrencyService {
  
   $countries=new Observable;
   API_KEY="eba29bf5143cb8d3976f504df29a9b96";
+  URL="https://api.apilayer.com/fixer";
+  URL2="https://api.apilayer.com/fixer/";
   $supported=new BehaviorSubject(0);
   $conversion=new BehaviorSubject(0);
   $amount=new BehaviorSubject(0);
-  constructor(private http:HttpClient) { }
+  $graph=new BehaviorSubject(0);
+  constructor(private http:HttpClient,
+    private datePipe:DatePipe) { }
 
   //supported currencies stored
   setSupportedSubject(data:any){
@@ -33,22 +38,43 @@ export class CurrencyService {
   getConversionSubject(){
     return this.$conversion.asObservable();
   }
-  //supported currencies stored
+  //amount stored
   setAmountSubject(data:any){
    this.$amount.next(data); 
   }
   
-  // return supported subject
+  // amount retrieved subject
   getAmountSubject(){
     return this.$amount.asObservable();
+  }
+  //supported currencies stored
+  setGraphSubject(data:any){
+   this.$graph.next(data); 
+  }
+  
+  // return supported subject
+  getGraphSubject(){
+    return this.$graph.asObservable();
   }
 
   
   //get suported currencies
    supported(){
     
-    return of(SUPPORTED)
-    .pipe(
+    // return of(SUPPORTED)
+    // .pipe(
+    //   map((data)=>{
+    //     let symbols=[];
+    //     for(let sy in data.symbols){
+    //       let symbol:any={}
+    //       symbol.currency=sy;
+    //       symbol.description=data.symbols[sy];
+    //       symbols.push(symbol);
+    //    }
+    //    return symbols
+    //   })
+    // );
+    return this.http.get<any>(`${this.URL}/symbols`).pipe(
       map((data)=>{
         let symbols=[];
         for(let sy in data.symbols){
@@ -60,42 +86,70 @@ export class CurrencyService {
        return symbols
       })
     );
-    return this.http.get<any>(`http://data.fixer.io/api/symbols`);
   }
 
-  getConversion(from?:string,to?:string,supportedCurencies?:any[]){
-    return of(LATEST)
-    .pipe(
-    map((data)=>{
-     let  formated= this.formatRates(data.rates)
-     data.rates=formated;
-    return data
-    })
-  )
+  getConversion(){
+  //   return of(LATEST)
+  //   .pipe(
+  //   map((data)=>{
+  //    let  formated= this.formatRates(data.rates)
+  //    data.rates=formated;
+  //   return data
+  //   })
+  // )
     return this.http.get<any>(
-      `http://data.fixer.io/api/latest`).pipe(
+      `${this.URL}/latest`).pipe(
         map((data)=>{
          let  formated= this.formatRates(data.rates)
-         console.log(formated)
         return formated
         })
       );
   }
- 
-   getCurrency(){
-    return this.http.get<any>('https://restcountries.com/v3.1/all');
+
+  getHistoricalData(dates:string[]){
+      
+      return from(dates).pipe(
+        mergeMap((history:any)=>from(this.getHistory(history)),4),
+        toArray());
+   
+  }
+  getHistory(date:string){
+   
+    // let searchParams=new HttpParams();
+    // searchParams=searchParams.append("symbols",symbols)
+
+    // return of(HISTORICALDATA).pipe(map((data)=>{
+    //   let formated= this.formatRates(data.rates)
+    //   return {
+    //     date:data.date,
+    //     rates:formated
+    //   }
+    // }))
+    // ,{
+    //   params:searchParams
+    // }
+     return this.http.get<any>(`${this.URL}/${date}`).pipe(map((data)=>{
+      let formated= this.formatRates(data.rates)
+      return {
+        date:data.date,
+        rates:formated
+      }
+    }));
   }
 
-  getHistoricalData(start_date:string, end_date:string, symbols:string){
-      let searchParams=new HttpParams();
-      // searchParams=searchParams.append("start_date",start_date)
-      // searchParams=searchParams.append("end_date",end_date)
-      searchParams=searchParams.append("symbols",symbols)
-    return this.http.get<any>(`http://data.fixer.io/api/${start_date}`,{
-      params:searchParams
-    });
-  }
-  // }
+  getConvertedHistoricalData(){
+
+    this.getGraphSubject().subscribe((data:any)=>{
+      
+      if(data!=0){
+        console.log(data[0])
+        return of(data);
+      }else{
+        return of([]);
+      }
+      
+    })
+}
 
   // utility classes
   formatRates(rates:any){
@@ -111,10 +165,10 @@ export class CurrencyService {
   return rate_collection
   }
 
-  getFromRate(data:any, from:any){
-    console.log(from)
-    console.log(data)
-       let from_rates:any=[];
+  async getFromRate(data:any, from:any){
+    let from_rates:any=[];
+    if(data){
+      
       let current_from_value= data.find((data2:any)=>data2.currency==from).amount;
       data.forEach((datas:any)=>{
          let amount=((datas.amount)/current_from_value);
@@ -124,7 +178,33 @@ export class CurrencyService {
          })
          
       })
-      return from_rates
+    }
+       
+      return await from_rates
+  }
+
+  getPreviousDays(){
+    let x=1
+    let historicdays:any[]=[];
+    while(x<=12){
+      let end_date = new Date();
+      if(end_date.getDate()>28){
+        let freshdate=`${end_date.getFullYear()}-${end_date.getMonth()}-${end_date.getDate()-4}`;
+        end_date=new Date(freshdate)
+      }
+    end_date.setMonth(end_date.getMonth() - x);
+   let dd= this.datePipe.transform(end_date,'yyyy-MM-dd')
+   historicdays.push(this.getLastDay(dd));
+      ++x;
+    }
+    return historicdays
+  }
+
+  getLastDay(sdate:any){
+    let date=new Date(sdate);
+   var lastDayOfMonth = new Date(date.getFullYear(), date.getMonth()+1, 0);
+   let last_day=this.datePipe.transform(lastDayOfMonth,'yyyy-MM-dd')!;
+   return last_day;
   }
 
 }

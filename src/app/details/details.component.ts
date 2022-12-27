@@ -1,7 +1,7 @@
 import { DatePipe, Location } from '@angular/common';
 import { Component ,OnInit,ViewChild,AfterViewInit} from '@angular/core';
-import { ActivatedRoute, Params } from '@angular/router';
-import { debounceTime, distinctUntilChanged, map, Observable, shareReplay, Subject } from 'rxjs';
+import { ActivatedRoute} from '@angular/router';
+import { debounceTime, distinctUntilChanged, Observable, Subject } from 'rxjs';
 import { CurrencyService } from '../currency.service';
 import { Chart, ChartConfiguration, ChartEvent, ChartType } from 'chart.js';
 import { BaseChartDirective } from 'ng2-charts';
@@ -92,6 +92,7 @@ export class DetailsComponent implements OnInit, AfterViewInit{
   formattedRates:any;
 
   supportedCurencies:string[]=[]
+  historicalDays:string[]=[]
   
   constructor(
     private currencyService:CurrencyService, 
@@ -115,8 +116,6 @@ export class DetailsComponent implements OnInit, AfterViewInit{
             for(let c in this.supportedData.symbols){
                this.supportedCurencies.push(c);
             }
-
-          console.log(this.supportedCurencies);
           }
         
 
@@ -132,8 +131,7 @@ export class DetailsComponent implements OnInit, AfterViewInit{
            }
         
            onAmountChange(){
-            console.log(this.amount);
-            this.$amount.next(this.amount!);
+            this.$amount.next(this.amount! || 0);
             // this.$amount
              this.$amount.pipe(
               debounceTime(100),
@@ -147,10 +145,17 @@ export class DetailsComponent implements OnInit, AfterViewInit{
         
            convert(){
             this.currencyService.getConversionSubject().subscribe((data:any)=>{
-              this.fromRates=this.currencyService.getFromRate(data.rates,this.from);
-              this.toAmount=this.fromRates.find((datas:any)=>datas.currency==this.to).amount;
-              this.fromAmount=this.fromRates.find((datas:any)=>datas.currency==this.from).amount;
-              this.toCurrenciesRates=this.fromRates.filter((x:any) => this.topCurrencies.includes(x.currency));
+              this.currencyService.getFromRate(data.rates,this.from).then((dd)=>{
+                this.fromRates= dd;
+                this.toAmount=this.fromRates.find((datas:any)=>datas.currency==this.to)?.amount;
+                this.fromAmount=this.fromRates.find((datas:any)=>datas.currency==this.from)?.amount;
+                this.toCurrenciesRates=this.fromRates.filter((x:any) => this.topCurrencies.includes(x.currency));
+            // console.log(this.toCurrenciesRates);
+            
+              });
+
+              this.getHistoricalData()
+              
             })
         
           }
@@ -160,12 +165,22 @@ export class DetailsComponent implements OnInit, AfterViewInit{
     this.location.back();
   }
 
-  getDates(){
-    let end_date = new Date();
-    this.end_date=this.datePipe.transform(end_date,'yyyy-MM-dd')!;
-    end_date.setMonth(end_date.getMonth() - 12);
-    this.start_date=this.datePipe.transform(end_date,'yyyy-MM-dd')!;
-    this.getLastDay(this.start_date);
+
+  getPreviousDays(){
+    let x=1
+    let historicdays:any[]=[];
+    while(x<=12){
+      let end_date = new Date();
+      if(end_date.getDate()>28){
+        let freshdate=`${end_date.getFullYear()}-${end_date.getMonth()}-${end_date.getDate()-4}`;
+        end_date=new Date(freshdate)
+      }
+    end_date.setMonth(end_date.getMonth() - x);
+   let dd= this.datePipe.transform(end_date,'yyyy-MM-dd')
+   historicdays.push(this.getLastDay(dd));
+      ++x;
+    }
+    return historicdays
   }
 
   getLastDay(sdate:any){
@@ -175,60 +190,36 @@ export class DetailsComponent implements OnInit, AfterViewInit{
    return last_day;
   }
 
-  formatRates(rates:any){
-    let rate_collection=[];
-  for(let rate in rates){
-    let a:any={};
-     a.date=rate;
-     let b:any=[];
-     for(let m in rates[rate]){
-      let g:any={}
-      g.currency=m;
-      g.amount=rates[rate][m];
-      b.push(g)
-     }
-     a.rate=b
-     rate_collection.push(a);
-  }
-
-  return rate_collection
-  }
-
   formatHistoricalData(data:any){
-        let rates=data.rates;
-        let lastdays=[]
-
-        // get dulicate value
-        for(let day of this.formattedRates){
-          lastdays.push(this.getLastDay(day.date)) 
-        }
 
         //get all pure last days
-        let alllastdays=[...new Set(lastdays)]
 
         let datasets:any=[];
-
-        this.supportedCurencies.forEach((currency)=>{
+        console.log(this.from);
+        console.log(this.to);
+        [this.to,this.from].forEach((currency)=>{
           let dset:any={};
           dset.label=currency
-          // let f=this.formatRates
           let arrayr:any=[];
-          this.formattedRates.forEach((element:any) => {
-              element.rate.forEach((e:any)=>{
-                 if(currency==e.currency){
-                   arrayr.push(e.amount)
-                 }
-              })
-           });
-           dset.data=arrayr;
-           datasets.push(dset);
+          data.forEach((el:any)=>{
+            el.rates.forEach((rate:any) => {
+              if(currency==rate.currency){
+                arrayr.push(rate.amount)
+              }
+            });
+          })
+          dset.data=arrayr.reverse()
+          datasets.push(dset);
         })
+
         
         //prepare for graph
         let labels:any[]=[];
-        alllastdays.forEach((e,i)=>{
+        this.historicalDays.forEach((e,i)=>{
            labels.push(new Date(e).toLocaleString('default', { month: 'long' }));
         })
+
+        labels=labels.reverse()
 
         return {
           labels,
@@ -239,9 +230,12 @@ export class DetailsComponent implements OnInit, AfterViewInit{
 
   getHistoricalData(){
 
-    let symbols=this.to+','+this.from;
-    this.currencyService.getHistoricalData(this.start_date!,this.end_date!,symbols).subscribe((data)=>{
-      console.log(data);
+    this.currencyService.getGraphSubject().subscribe((data:any)=>{
+      
+      if(data!=0){
+        this.graph_data=this.formatHistoricalData(data)
+      }
+      
     })
   }
 
@@ -249,18 +243,13 @@ export class DetailsComponent implements OnInit, AfterViewInit{
 
 
   ngOnInit(): void {
-    this.getDates()
-    // this.getSupportedCurrency();
-    this.formattedRates= this.formatRates(this.historicalData.rates);
-    this.graph_data=this.formatHistoricalData(this.historicalData);
-    console.log(this.formattedRates)
+    this.historicalDays=this.currencyService.getPreviousDays();
 
     // set to and from (route parameters)
      this.aroute.params.subscribe((data:any)=>{
       if(data.conversion){
 
         let to_from=data.conversion.split('-');
-        console.log(to_from)
         this.from=to_from[0];
         this.to=to_from[1];
         this.from_data;
@@ -273,13 +262,12 @@ export class DetailsComponent implements OnInit, AfterViewInit{
 
 
 
-     this.countries$= this.currencyService.getCurrency().pipe(
-      shareReplay()
-    );
+    //  this.countries$= this.currencyService.getCurrency().pipe(
+    //   shareReplay()
+    // );
 
     this.currencyService.getSupportedSubject().subscribe((data:any)=>{
       if(data!=0){
-        console.log(data);
         this.from_data=data.find((supported:any)=>supported.currency==this.from)
         this.supportedCurrencies=data;
       }
@@ -294,60 +282,36 @@ export class DetailsComponent implements OnInit, AfterViewInit{
 
     this.currencyService.getConversionSubject().subscribe((data)=>{
       if(data!=0){
-        console.log(data);
+        // console.log(data);
       }
     })
     
     this.convert()
     
    
+    this.lineChartData={
+      datasets:this.graph_data?.datasets ,
+      labels: this.graph_data?.labels 
+    };
   
+    this.lineChartOptions= {
+      elements: {
+        line: {
+          tension: 0.5
+        }
+      },
+      scales: {
+        y:
+          {
+            position: 'left',
+          },
+      }
+    };
+  
+    console.log(this.lineChartData)
  }
 
  ngAfterViewInit(): void {
-  this.lineChartData={
-    datasets:this.graph_data.datasets ,
-    labels: this.graph_data.labels 
-  };
-
-  this.lineChartOptions= {
-    elements: {
-      line: {
-        tension: 0.5
-      }
-    },
-    scales: {
-      y:
-        {
-          position: 'left',
-        },
-    },
-
-    // plugins: {
-    //   legend: { display: true },
-    //   annotation: {
-    //     annotations: [
-    //       {
-    //         type: 'line',
-    //         scaleID: 'x',
-    //         value: 'March',
-    //         borderColor: 'orange',
-    //         borderWidth: 2,
-    //         label: {
-    //           display: true,
-    //           position: 'center',
-    //           color: 'orange',
-    //           content: 'LineAnno',
-    //           font: {
-    //             weight: 'bold'
-    //           }
-    //         }
-    //       },
-    //     ],
-    //   }
-    // }
-  };
-
-  console.log(this.lineChartData)
+ 
  }
 }

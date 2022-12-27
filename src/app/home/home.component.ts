@@ -19,7 +19,7 @@ export class HomeComponent implements OnInit {
   countries:any=[];
 
   topCurrencies:any=['USD','EUR','JPY','GBP','AUD','CAD','CHF','CNY','HKD'];
-  fromRates?:any=[];
+  fromRates:any=[];
   toAmount?:any;
   fromAmount: any;
   toCurrenciesRates?:any[]=[];
@@ -40,9 +40,7 @@ export class HomeComponent implements OnInit {
    }
 
    onAmountChange(){
-    console.log(this.amount);
     this.$amount.next(this.amount!);
-    // this.$amount
      this.$amount.pipe(
       debounceTime(100),
       distinctUntilChanged()
@@ -56,11 +54,15 @@ export class HomeComponent implements OnInit {
    convert(){
 
     this.currencyService.getConversionSubject().subscribe((data:any)=>{
-      this.fromRates=this.currencyService.getFromRate(data.rates,this.from);
-      this.toAmount=this.fromRates.find((datas:any)=>datas.currency==this.to).amount;
-      this.fromAmount=this.fromRates.find((datas:any)=>datas.currency==this.from).amount;
-      this.toCurrenciesRates=this.fromRates.filter((x:any) => this.topCurrencies.includes(x.currency));
-      console.log(this.toCurrenciesRates);
+      if(data!=0){
+        this.currencyService.getFromRate(data.rates,this.from).then((dd)=>{
+          this.fromRates= dd;
+          this.toAmount=this.fromRates.find((datas:any)=>datas.currency==this.to)?.amount;
+          this.fromAmount=this.fromRates.find((datas:any)=>datas.currency==this.from)?.amount;
+          this.toCurrenciesRates=this.fromRates.filter((x:any) => this.topCurrencies.includes(x.currency));
+      // console.log(this.toCurrenciesRates);
+        });
+      }
     })
 
   }
@@ -69,14 +71,27 @@ export class HomeComponent implements OnInit {
   ngOnInit(): void {
     
   
-  this.countries$= this.currencyService.getCurrency().pipe(
-        shareReplay()
-      );
+  // this.countries$= this.currencyService.getCurrency().pipe(
+  //       shareReplay()
+  //     );
 
       this.currencyService.getSupportedSubject().subscribe((data:any)=>{
         if(data!=0){
           this.supportedCurrencies=data;
-          console.log(this.supportedCurrencies)
+        }
+      })
+
+      this.currencyService.getConversionSubject().subscribe((data:any)=>{
+        if(data!=0){
+          this.currencyService.getFromRate(data,this.from).then((dd)=>{
+            this.fromRates= dd;
+            if(this.fromRates){
+              this.toAmount=this.fromRates.find((datas:any)=>datas.currency==this.to)?.amount;
+              this.fromAmount=this.fromRates.find((datas:any)=>datas.currency==this.from)?.amount;
+              this.toCurrenciesRates=this.fromRates.filter((x:any) => this.topCurrencies.includes(x.currency));
+            }
+          });
+        
         }
       })
  }
