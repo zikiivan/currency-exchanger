@@ -1,6 +1,6 @@
 # CurrencyExchange
-
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 15.0.1.
+Design on Figma
+https://www.figma.com/file/bwItregrn6rRLgxcWXdTDH/Currency-Exchanger?node-id=16%3A31&t=7PbAz98K2ob67I4b-1
 
 ## Development server
 
@@ -14,9 +14,6 @@ Run `ng generate component component-name` to generate a new component. You can 
 
 Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
 
-## Running unit tests
-
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
 
 ## Running end-to-end tests
 
